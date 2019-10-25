@@ -1,90 +1,91 @@
-require("dotenv").config()
-const keys = require('./keys.js')
+require("dotenv").config();
 
-const userin = process.argv[2]
-let userval =process.argv.slice(3).join("")
+//node packages and files
+const keys= require('./keys.js');
+const axios = require('axios');
+const inquirer = require('inquirer');
+const moment = require('moment');
+const spotify = require('node-spotify-api');
+const fs = require("fs");
 
-const axios = require('axios')
-const inquirer = require('inquirer')
-const moment = require('moment')
-const spotify = require('node-spotify-api')
-const fs = require('fs')
-const[ node, file, ... args] = process.argv
 
-if(args[0] === 'movie this'){
-    if(args[1]=== undefined){
-        getMovie('Mr. +Nobody')
+const nodeArgv = process.argv;
+const command = process.argv[2];
+
+let x = "";
+for(var i = 3; i<nodeArgv.length; i++){
+    if(i>3 && i<nodeArgv.length){
+        x = x + " + " + nodeArgv[i];
     }
     else{
-        getMovie(args.slice(1).join("+"));
+        x = x + nodeArgv[i];
     }
-};
-
-if(args[0] === "spotify-this-song"){
-    if(args[1] === undefined){
-        spotifySong("I want it that way")
-    }
-    else{
-        let songTitle = args.slice(1).join(" ");
-        spotifySong(songTitle)
-    }
-};
-if(args[0] === "do-what-it-says"){
-    fs.readFile("random.txt", "utf8", function (e, data) {
-        if (e){
-            return console.log(e)
-        }
-        dataArr = data.split(",");
-        if (dataArr[0] === "movie-this"){
-            if(dataArr[1] === undefined){
-                getMovie("Mr. +Nobody")
-            }
-            else{
-                getMovie(dataArr[1].split("+"))
-            }
-        };
-        if(dataArr[0] === "spotify-this-song"){
-            if(dataArr[1]=== undefined){
-                spotifySong("I want it That way")
-            }
-            else{
-                spotifySong(dataArr[1])
-            }
-
-        }
-    }) 
 }
- function spotifySong(songName){
-     spotify.search({type:'track', query: songName, limit:5}, function(e, data){
-         if(e){
-             return console.log('Error')
-         }
-         data.tracks.item.foreach(function(element){
+
+switch(command){
+    case "spotify-this-song":
+        if(x){
+        spotifySong(x);
+    } else {
+        spotifySong("I want it that Way")
+    }
+        break;
+
+    case "movie-this":
+        if(x){
+         movieThis(x);
+        } else{
+            movieThis("Mr. Nobody")
+        }
+        break;
+    
+    case "do-what-it-says":
+        downWhatItSay();
+        break;
+    case "concert-this":
+        concertThis();
+        break;
+    default:
+         console.log("Please Pick one: do-what-it-says,spotify-this-song, movie-this, concert-this")
+    break;   
+}
+
+ function spotifySong(song){
+     Spotify.search({type:'track', query: song}, function(e, data){
+         if(!e){
+             for(let i = 0; i < data.tracks.items.length; i++){
+          let songData =data.tracks.items[i];
+
              console.log("");
-             console.log(`Artist :${element.artist[0].name}`);
-             console.log(`Song: ${songName}`);
-             console.log(`Spotify Preview Link: ${element.preview_url}`);
-             console.log(`Album: ${element.album.name}`);
-         })
+             console.log(`Artist :${songData.artist[0].name}`);
+             console.log(`Song: ${songData.name}`);
+             console.log(`Spotify Preview Link: ${songData.preview_url}`);
+             console.log(`Album: ${songData.album.name}`);
+             console.log("------------------------")
+
+             fs.appendFile('log.txt', songData.artists[0].name);
+             fs.appendFile('log.txt', songData.name);
+             fs.appendFile('log.txt', songData.preview_url);
+             fs.appendFile('log.txt', songData.album.name);
+             fs.appendFile('log.txt', "-----------------------");
+         }
+        }else{c
+            onsole.log('error')}
      })
  }
 
-axios.get('http://www.omdbapi.com/?i=tt3896198&apikey=9126697e')
-.then (data => {
-    console.log(data)
+function movieThis(movie){
+axios.get(`http://www.omdbapi.com/?t=${movieName}apikey=9126697e`)
+.then(function(movie)  {
+    console.log("");
+    console.log(`Title: ${movie.data.Title}`)
+    console.log(`Year: ${movie.data.Year}`)
+    console.log(`IMDB Rating: ${movie.data.Rating[0].value}`
+    )
+    console.log(`Rotten Tomatoes Rating: ${movie.data.rating[1]}`)
+    console.log(`Country:${movie.data.Country} `)
+    console.log(`Language:${movie.data.Lanuage}`)
+    console.log(`Plot: ${movie.data.Plot}`)
+    console.log(`Actors:${movie.data.Actors}`)
 })
-.catch(e => console.log(e))
-
-const getConcert = function(input){
-    if (input ===''|| typeof input === typeof underfined){
-        input = 'New Kids on the Block';
-        userval ='New Kids on the Block';
-    };
-    axios.get("https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp")
-        .then(function(response){
-            if (response.data.length ===0){
-                console.log("Try again! ")
-            fs.appendFile('random.txt')
-            }
-        })
 }
